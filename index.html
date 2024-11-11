@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>剪刀石頭布遊戲</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            background-color: #ebf5ff;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .btn-image {
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            cursor: pointer;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+
+        .btn-image:hover {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
+
+        #result {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .win {
+            color: green;
+        }
+
+        .lose {
+            color: red;
+        }
+
+        .draw {
+            color: gray;
+        }
+
+        audio {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>剪刀石頭布遊戲</h1>
+
+    <div>
+        <img id="scissors" class="btn-image" src="images/2.png" alt="剪刀">
+        <img id="rock" class="btn-image" src="images/0.png" alt="石頭">
+        <img id="paper" class="btn-image" src="images/5.png" alt="布">
+    </div>
+
+    <p id="result">選擇你的出招！</p>
+    <pre id="score">玩家：0  電腦：0</pre>
+
+    <audio id="win-sound" src="audio\win.mp3"></audio>
+    <audio id="lose-sound" src="audio\lose.mp3"></audio>
+    <audio id="draw-sound" src="audio\draw.mp3"></audio>
+
+    <script>
+        let playerWins = 0;
+        let computerWins = 0;
+        const winningScore = 3;
+
+        function computerChoice() {
+            const choices = ['剪刀', '石頭', '布'];
+            const randomIndex = Math.floor(Math.random() * 3);
+            return choices[randomIndex];
+        }
+
+        function determineWinner(playerChoice, computerChoice) {
+            if (playerChoice === computerChoice) {
+                return '平手';
+            }
+            if (
+                (playerChoice === '剪刀' && computerChoice === '布') ||
+                (playerChoice === '石頭' && computerChoice === '剪刀') ||
+                (playerChoice === '布' && computerChoice === '石頭')
+            ) {
+                return '你贏了';
+            } else {
+                return '你輸了';
+            }
+        }
+
+        function playSound(resultMessage) {
+            const winSound = document.getElementById('win-sound');
+            const loseSound = document.getElementById('lose-sound');
+            const drawSound = document.getElementById('draw-sound');
+
+            winSound.pause();
+            loseSound.pause();
+            drawSound.pause();
+
+            winSound.currentTime = 0;
+            loseSound.currentTime = 0;
+            drawSound.currentTime = 0;
+
+            if (resultMessage === '你贏了') {
+                winSound.play();
+            } else if (resultMessage === '你輸了') {
+                loseSound.play();
+            } else {
+                drawSound.play();
+            }
+        }
+
+        function checkWinner() {
+            if (playerWins === winningScore) {
+                Swal.fire({
+                    title: '勝利！',
+                    text: '玩家獲得三次勝利，遊戲結束！',
+                    icon: 'success',
+                    confirmButtonText: '重新開始'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        resetGame();
+                    }
+                });
+            } else if (computerWins === winningScore) {
+                Swal.fire({
+                    title: '失敗...',
+                    text: '電腦獲得三次勝利，遊戲結束！',
+                    icon: 'error',
+                    confirmButtonText: '重新開始'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        resetGame();
+                    }
+                });
+            }
+        }
+
+        function resetGame() {
+            playerWins = 0;
+            computerWins = 0;
+            document.getElementById('score').innerHTML = `玩家：${playerWins}   電腦：${computerWins}`;
+            document.getElementById('result').innerHTML = "選擇你的出招！";
+        }
+
+        function updateScore() {
+            document.getElementById('score').innerHTML = `玩家：${playerWins}   電腦：${computerWins}`;
+        }
+
+        function playGame(playerChoice) {
+            const computerPick = computerChoice();
+            const resultMessage = determineWinner(playerChoice, computerPick);
+            const resultElement = document.getElementById('result');
+
+            if (resultMessage === '你贏了') {
+                resultElement.className = 'win';
+                playerWins++;
+            } else if (resultMessage === '你輸了') {
+                resultElement.className = 'lose';
+                computerWins++;
+            } else {
+                resultElement.className = 'draw';
+            }
+
+            resultElement.innerHTML = `你選擇了 ${playerChoice}，電腦選擇了 ${computerPick}。${resultMessage}`;
+            updateScore();
+            playSound(resultMessage);
+            checkWinner();
+        }
+
+        document.getElementById('scissors').addEventListener('click', function() {
+            playGame('剪刀');
+        });
+
+        document.getElementById('rock').addEventListener('click', function() {
+            playGame('石頭');
+        });
+
+        document.getElementById('paper').addEventListener('click', function() {
+            playGame('布');
+        });
+    </script>
+</body>
+</html>
